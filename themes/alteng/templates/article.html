@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ article.title }} - {{ super() }}
+{% endblock title %}
+
+{% block head_description %}
+{% if article.summary %}
+{{ article.summary|striptags }}
+{% endif %}
+{% endblock head_description %}
+
+{% block meta_tags_in_head %}
+{% if article.tags or article.category or article.keywords %}
+<meta name="keywords" content="{{ [article.tags|join(', '), article.category, article.keywords]|join(', ') }}" />
+{% endif %}
+{% endblock meta_tags_in_head %}
+
+{% block content %}
+<article>
+    <div class="row-fluid">
+
+        <div class="span9">
+            <div class="row-fluid">
+                <header class="page_header">
+                <h1>{{ article.title }} {%if article.subtitle %} <small> {{ article.subtitle }} </small> {% endif %}</h1>
+                </header>
+                {{ article.content }}
+                <aside>
+                {% for an_article in dates %}
+                {% if an_article.url == article.url %}
+                {% set index = loop.index0 %}
+                {% if not loop.first %}
+                {% set next_article = dates[index-1] %}
+                {% endif %}
+                {% if not loop.last %}
+                {% set previous_article = dates[index+1] %}
+                {% endif %}
+                <nav>
+                <ul class="articles_timeline">
+                    {% if previous_article %}
+                    {% set ptitle = previous_article.title %}
+                    {% set pv_title = ptitle %}
+                    {% if previous_article.subtitle %}
+                    {% set pv_title = ptitle + " " +  "<small>" + previous_article.subtitle + "</small>" %}
+                    {% set ptitle = ptitle + " - " + previous_article.subtitle %}
+                    {% endif %}
+                    <li class="previous_article">« <a href="{{ SITEURL }}/{{ previous_article.url }}" title="Previous: {{ ptitle }}">{{ pv_title }}</a></li>
+                    {% endif %}
+                    {% if next_article %}
+                    {% set ntitle = next_article.title %}
+                    {% set nv_title = ntitle %}
+                    {% if next_article.subtitle %}
+                    {% set nv_title = ntitle + " " +  "<small>" + next_article.subtitle + "</small>" %}
+                    {% set ntitle = ntitle + " - " + next_article.subtitle %}
+                    {% endif %}
+                    <li class="next_article"><a href="{{ SITEURL }}/{{ next_article.url }}" title="Next: {{ ntitle }}">{{ nv_title }}</a> »</li>
+                    {% endif %}
+                </ul>
+                </nav>
+                {% endif %}
+                {% endfor %}
+                </aside>
+                {% include 'comments.html' %}
+            </div>
+        </div><!--/span-->
+
+        <div class="span3">
+            <div class="well sidebar-nav">
+                <ul class="nav nav-list">
+                    <li class="nav-header">Sukumar Yethadka</li>
+                    Some dude
+                    {% if article.date %}
+                    <li class="nav-header">Published</li>
+                    {% set day = article.date.strftime('%d')|int %}
+                    <time pubdate="pubdate" datetime="{{ article.date.isoformat() }}">{{ article.date.strftime('%b') }} {{ day }} {{- article.date.strftime(', %Y') }}</time>
+                    {% endif %}
+                    {% if article.modified %}
+                    <li class="nav-header">Last Updated</li>
+                    <div class="last_updated">{{ article.modified }}</div>
+                    {% endif %}
+                    {% if article.category %}
+                    <li class="nav-header">Category</li>
+                    <a class="category-link" href="/categories.html#{{ category|replace(' ', '-')|e }}-ref">{{ article.category }}</a>
+                    {% endif %}
+                    {% if article.tags %}
+                    <li class="nav-header">Tags</li>
+                    <ul class="list-of-tags tags-in-article">
+                        {% for tag in article.tags|sort %}
+                        <li><a href="/tags.html#{{ tag|replace(' ', '-')|e }}-ref">{{ tag }}
+                            {% for aTag, tagged_articles in tags if aTag == tag %}
+                            <span>{{ tagged_articles|count }}</span>
+                            {% endfor %}</a></li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </ul>
+            </div><!--/.well -->
+        </div><!--/span-->
+
+    </div>
+</article>
+{% endblock content %}
+
+{% block script %}
+{{ super() }}
+{% include 'disqus_script_count.html' %}
+{% endblock script %}
